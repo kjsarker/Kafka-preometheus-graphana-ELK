@@ -25,3 +25,16 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__name__)
+
+
+#setting up producer configuration. We are using gzip compression to compress the messages before sending to the broker. This will help us to reduce the network bandwidth and improve the performance of the producer. We are also setting the acks to 1, which means that the producer will wait for the acknowledgment from the leader broker before considering the message as sent. This will provide better latency but less durability as if the leader fails immediately after acknowledging the record but before the followers have replicated it, the record will be lost.
+producer_conf = {
+    'bootstrap_servers': KAFKA_BROKERS, # list of brokers produer will connect to
+    'queue_buffering_max_messages': 10000,# maximum number of messages in the queue before producer freezes and waits for the messages to be sent to the broker
+    'queue_buffering_max_kbytes': 512000,# maximum number of kilobytes in the queue before producer freezes and waits for the messages to be sent to the broker
+    'batch_num_messages': 1000,# maximum number of messages in a batch before sending to the broker
+    'linger_ms': 10,# time to wait before sending a batch of messages to the broker, even if the batch is not full
+    'acks': 1,# number of acknowledgments the producer requires the leader to have received before considering a request complete. 1 means that the leader will write the record to its local log but will respond without awaiting full acknowledgment from all followers. This option provides better latency but less durability as if the leader fails immediately after acknowledging the record but before the followers have replicated it, the record will be lost.
+    'compression_type': 'gzip'
+}
+
