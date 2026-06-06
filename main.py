@@ -38,3 +38,30 @@ producer_conf = {
     'compression_type': 'gzip'
 }
 
+producer = Producer(producer_conf)
+
+#Defining a function to create a topic. We are using the AdminClient to create the topic. We are checking if the topic already exists before creating it. If the topic already exists, we will log a message and return. If the topic does not exist, we will create the topic and log a message.
+
+def create_topic(topic_name):
+    admin_client = AdminClient({"bootstrap.servers":"KAFKA_BROKERS"})
+
+    try:
+        metadata = admin_client.list_topics(timeout=10)     #It is a cluster metadata. It return all the information about the cluster in a dictionary format, like topic name, broker id, name, partitions etc.
+        if topic_name not in metadata.topic:    # metadata.topic list all the topic name in the cluster
+            topic = NewTopic(                   # Here topic is basically a topic config object which will later be used to create an actual topic
+                topic=topic_name,
+                num_partitions=NUM_PARTITIONS,
+                replication_factor=REPLICATION_FACTOR
+            )
+            
+            fs = admin_client.create_topics([topic]) # It creates a future object with a ey value pair. Key is topic name, and value is the state of the operation
+            for topic,future in fs.items():
+                try:
+                    future.result()     # It chesk the result of the current iteam of the fs object. If the topic is created, result = None, which will do nothing and proceed to the next line of code. If it result = None exception = some exception, then it will skip staright to the exception block. The immediate lineswon't be read before the exception block. Hence, returning nothing ensure the success of creating the topic.
+                    logger.info(f"Topic '{topic}' created successfully.")
+                except Exception as e:
+                    logger.error(f"Failed creating topic: {e}")
+    else:
+        logger.info(f"Topic '{topic_name}' already exists.")
+
+
