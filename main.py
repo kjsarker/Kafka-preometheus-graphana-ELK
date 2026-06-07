@@ -83,4 +83,13 @@ def generate_transaction():
         currency=random.choice(['USD','EUR','GBP'])
     )   
 
+#Adding a call back function which will be automatically called after the producer delivered a message. We'll see later in the code in producer.produce() section.Once the message is sent,  producer gets an acknowledgment (or an error) from the broker, it internally calls delivery_report(err, msg) where err — a KafkaError object if delivery failed, or None if it succeeded
+#msg — the Message object representing what was sent, which has methods like .key(), .value(), .topic(), .partition(), .offset().
+
+def delivery_report(err,msg):
+    if err is not None:
+        print(f'Delivery failed for record {msg.key()}')
+    else:
+        print(f'Record {msg.key} was successfully produced.')
+
 
