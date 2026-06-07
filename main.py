@@ -83,6 +83,7 @@ def generate_transaction():
         currency=random.choice(['USD','EUR','GBP'])
     )   
 
+
 #Adding a call back function which will be automatically called after the producer delivered a message. We'll see later in the code in producer.produce() section.Once the message is sent,  producer gets an acknowledgment (or an error) from the broker, it internally calls delivery_report(err, msg) where err — a KafkaError object if delivery failed, or None if it succeeded
 #msg — the Message object representing what was sent, which has methods like .key(), .value(), .topic(), .partition(), .offset().
 
@@ -91,5 +92,24 @@ def delivery_report(err,msg):
         print(f'Delivery failed for record {msg.key()}')
     else:
         print(f'Record {msg.key} was successfully produced.')
+
+
+
+#Adding a loop to generate transaction, sending to topic or printing an error message if message sending fails.
+def produce_transation():
+    while True:
+        transaction=generate_transaction()
+
+        try:
+            producer.produce(
+                topic=TOPIC_NAME,
+                key=transaction['userId'],
+                value=json.dump(transaction).encode('utf-8'), #transaction dictionary is being turned into a json and then encoded before sending over the wire.
+                on_delivery=delivery_report #Here delivery_report function is being passed to a variable. Once the message delivered/failed, this functioned will be called.
+            )
+            print(f'Thread {thread_id} - Produced Transaction:{transaction}')
+            producer.flush()
+        except Exception as e:
+            print(f'Error sending transaction: {e}')
 
 
