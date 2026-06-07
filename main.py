@@ -61,7 +61,26 @@ def create_topic(topic_name):
                     logger.info(f"Topic '{topic}' created successfully.")
                 except Exception as e:
                     logger.error(f"Failed creating topic: {e}")
-    else:
-        logger.info(f"Topic '{topic_name}' already exists.")
+        else:
+            logger.info(f"Topic '{topic_name}' already exists.")
+
+    except Exception as e;
+        logger.error(f"Erro creating topic: {e}")
+
+
+#Function which generates sinthetic transactions:
+def generate_transaction():
+    return dict(
+        transactionId=str(uuid.uuid4()),
+        userid=f"user_{random.randint(1,100)}",
+        amount=round(random.uniform(50000,150000),2),
+        transactiontime=int(time.time()),
+        merchantId=random.choice(['merchant_1','merchant_2','merchant_3']),
+        transactionType=random.choice(['purchase','Refund']),
+        location=f'location_{random.randint(1,50)}',
+        paymentMethod=random.choice(['credit_card','paypal','bank_transfer']),
+        isInternational=random.choice(['True','False']),
+        currency=random.choice(['USD','EUR','GBP'])
+    )   
 
 
