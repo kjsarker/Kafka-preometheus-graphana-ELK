@@ -113,3 +113,25 @@ def produce_transation():
             print(f'Error sending transaction: {e}')
 
 
+# # Creates 3 daemon threads each running produce_transaction with a unique ID, starts them immediately so Kafka producing begins in background,
+# then blocks the main thread with join() so the program stays alive while all threads continuously send transactions in parallel.
+def producer_data_in_parallel(num_threads):
+    threads = []
+    try:
+        for i in range(num_threads):
+            thread = threading.Thread(target=produce_transaction, args=(i,))
+            thread.daemon = True
+            thread.start()
+            threads.append(thread)
+
+        for thread in threads:
+            thread.join()
+    except Exception as e:
+        print(f'Error message {e}')
+
+
+# Adding a Python guard that says, only run this code if this file is being run directly, not if it's being imported by another file.
+if __name__ == "__main__":
+    create_topic(TOPIC_NAME)
+    producer_data_in_parallel(3)
+
