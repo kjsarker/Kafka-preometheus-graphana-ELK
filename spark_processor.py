@@ -64,4 +64,11 @@ transaction_df = kafka_stream.selectExpr("CAST(value as STRING)") \
 #Adding derived column
 transaction_df = transaction_df.withColumn(
   "transaction_timestamp",(col("transactionTime")/1000).cast("timestamp")
- )   
+ )
+
+# Making aggreagation dataframe 
+aggregated_df = transaction_df.groupby("merchantId") \
+    .agg(   
+        sum("amount").alias("totalAmount"),
+        count("*").alias("transactionCount")
+        )
