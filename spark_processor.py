@@ -39,7 +39,7 @@ transaction_schema = StructType([
     
 ])
 
-# Putting the estreaming dataframe object in a variable.This just sets up the configuration, no data flow starts yet. Its like setting up the hose pipe in the garden, connected to the water tap. The tap isn't open yet.
+# Putting the streaming dataframe object in a variable.This just sets up the configuration, no data flow starts yet. Its like setting up the hose pipe in the garden, connected to the water tap. The tap isn't open yet.
 # Data will strats loading once there is .start()
 # .readStream tells spark that there will be continuous data flow. the flow will be kafka. the next line connects with the broker server. The following line tell swhich topic should it listen to. and then it tells from where it should read data(offset). Again this is
 # this is just a configuration. The real data flow will start later.
@@ -49,4 +49,14 @@ kafka_stream = spark.readstream \
     .option("subscribe", SOURCE_TOPIC) \
     .option("startingOffset", "earliest") \
     .load()
+
+
+# Kafka messages are raw bytes on the wire. This code is converting those bytes into a proper structured DataFrame with named columns.
+# .selectExpr() is used to write SQL expression as string.
+# Kafka gives us a DataFrame with fixed columns — key, value, topic, partition, offset, timestamp. The value column is raw bytes. This line casts it to a readable string like '{"userId": "123", "amount": 50.0, ...}'. We're essentially just making it human readable text first. All these, "userId": "123", are you raw bytes. selectExpr("CAST(value AS STRING)") is making it plain string first.
+# Now, value column is sitting there just as simple text. .select(from_json(col("value"), transaction_schema) code will parse those text through a spark stuct(which is still key value paired like {"userId": "123", "amount": 50.0, ...}), but now it is distinguishable. userId is string, amoun is double etc. They are not just plain text anymore. from_json() parse that text and recognize the key-value structure inside the plain text. Then it applied transaction_schema to give each value a proper type (userId → String, amount → Double)
+# Now that we have spark struct, .select(.*) will explode that key value pairs into proper row column dataframe that we will be able to use later for example to filter group by etc.
+transaction_df = kafka_stream.selectExpr("CAST(value as STRING)") \
+    .select(from_json(col("value"),tansaction_schema).alias("data")) \
+    .select("data.*")
     
