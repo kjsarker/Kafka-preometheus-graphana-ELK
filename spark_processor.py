@@ -59,4 +59,9 @@ kafka_stream = spark.readstream \
 transaction_df = kafka_stream.selectExpr("CAST(value as STRING)") \
     .select(from_json(col("value"),tansaction_schema).alias("data")) \
     .select("data.*")
-    
+
+
+#Adding derived column
+transaction_df = transaction_df.withColumn(
+  "transaction_timestamp",(col("transactionTime")/1000).cast("timestamp")
+ )   
