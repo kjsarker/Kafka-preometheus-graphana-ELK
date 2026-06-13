@@ -20,3 +20,21 @@ spark = SparkSession.builder \
     .config("spark.sql.shuffle.partitions", 5) \
     .config("spark.sql.streaming.stateStore.stateStoreDir", STATES_DIR) \
     .getOrCreate()
+
+# Setting log level. It tells Spark to only show log messages that are warnings or above (WARN, ERROR).
+spark.sparkContext.setLogLevel("WARN")
+
+# Setting the schema
+transaction_schema = StructType([
+    StructField("transactionId", StringType(), True),
+    StructField("userId", StringType(), True),
+    StructField("merchantId", StringType(), True),
+    StructField("amount", DoubleType(), True),
+    StructField("transactionTime", LongType(), True),
+    StructField("transactionType", StringType(), True),
+    StructField("location", StringType(), True),
+    StructField("paymentMethod", StringType(), True),
+    StructField("isInternational", StringType(), True),
+    StructField("currency", StringType(), True)
+    
+])
