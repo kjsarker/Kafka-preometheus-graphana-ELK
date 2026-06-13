@@ -72,3 +72,17 @@ aggregated_df = transaction_df.groupby("merchantId") \
         sum("amount").alias("totalAmount"),
         count("*").alias("transactionCount")
         )
+
+
+#Now we'll send the data back in kafka topic, but a different one. Before sending as kafka format, we will add 2 new column, one as a key, and the other as value. The value column will basically have all the column which the aggregated_df had primarily, so that we can have tract of key value in the destination topic.
+aggregation_query = aggregated_df \
+    .withColumn("key", col("merchantId").cast("string")) \
+    .withColumn("value", to_json(struct(col("merchantId"),col("totalAmount"),col("transactionCount")))) \
+    .selectExpr("key","value") \
+    .writeStream \
+    .format('kafka') \
+    .outputMode('update') \
+    .option('kafka.bootstrap.servers',KAFKA_BROKERS) \
+    .option('topic',AGGREGATES_TOPIC) \
+    .option("checkpointlocation",f'{CHECKPOINT_DIR}/aggregates') \
+    .start().awaitTermination()
