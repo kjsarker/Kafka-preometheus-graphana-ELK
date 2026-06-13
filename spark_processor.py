@@ -38,3 +38,15 @@ transaction_schema = StructType([
     StructField("currency", StringType(), True)
     
 ])
+
+# Putting the estreaming dataframe object in a variable.This just sets up the configuration, no data flow starts yet. Its like setting up the hose pipe in the garden, connected to the water tap. The tap isn't open yet.
+# Data will strats loading once there is .start()
+# .readStream tells spark that there will be continuous data flow. the flow will be kafka. the next line connects with the broker server. The following line tell swhich topic should it listen to. and then it tells from where it should read data(offset). Again this is
+# this is just a configuration. The real data flow will start later.
+kafka_stream = spark.readstream \
+    .format("kafka") \
+    .option("kafka.bootstap.servers", KAFKA_BROKERS) \
+    .option("subscribe", SOURCE_TOPIC) \
+    .option("startingOffset", "earliest") \
+    .load()
+    
