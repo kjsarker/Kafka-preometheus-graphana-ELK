@@ -29,13 +29,13 @@ logger = logging.getLogger(__name__)
 
 #setting up producer configuration. We are using gzip compression to compress the messages before sending to the broker. This will help us to reduce the network bandwidth and improve the performance of the producer. We are also setting the acks to 1, which means that the producer will wait for the acknowledgment from the leader broker before considering the message as sent. This will provide better latency but less durability as if the leader fails immediately after acknowledging the record but before the followers have replicated it, the record will be lost.
 producer_conf = {
-    'bootstrap_servers': KAFKA_BROKERS, # list of brokers produer will connect to
-    'queue_buffering_max_messages': 10000,# maximum number of messages in the queue before producer freezes and waits for the messages to be sent to the broker
-    'queue_buffering_max_kbytes': 512000,# maximum number of kilobytes in the queue before producer freezes and waits for the messages to be sent to the broker
-    'batch_num_messages': 1000,# maximum number of messages in a batch before sending to the broker
-    'linger_ms': 10,# time to wait before sending a batch of messages to the broker, even if the batch is not full
+    'bootstrap.servers': KAFKA_BROKERS, # list of brokers produer will connect to
+    'queue.buffering.max.messages': 10000,# maximum number of messages in the queue before producer freezes and waits for the messages to be sent to the broker
+    'queue.buffering.max.kbytes': 512000,# maximum number of kilobytes in the queue before producer freezes and waits for the messages to be sent to the broker
+    'batch.num.messages': 1000,# maximum number of messages in a batch before sending to the broker
+    'linger.ms': 10,# time to wait before sending a batch of messages to the broker, even if the batch is not full
     'acks': 1,# number of acknowledgments the producer requires the leader to have received before considering a request complete. 1 means that the leader will write the record to its local log but will respond without awaiting full acknowledgment from all followers. This option provides better latency but less durability as if the leader fails immediately after acknowledging the record but before the followers have replicated it, the record will be lost.
-    'compression_type': 'gzip'
+    'compression.type': 'gzip'
 }
 
 producer = Producer(producer_conf)
@@ -43,11 +43,11 @@ producer = Producer(producer_conf)
 #Defining a function to create a topic. We are using the AdminClient to create the topic. We are checking if the topic already exists before creating it. If the topic already exists, we will log a message and return. If the topic does not exist, we will create the topic and log a message.
 
 def create_topic(topic_name):
-    admin_client = AdminClient({"bootstrap.servers":"KAFKA_BROKERS"})
+    admin_client = AdminClient({"bootstrap.servers":KAFKA_BROKERS})
 
     try:
         metadata = admin_client.list_topics(timeout=10)     #It is a cluster metadata. It return all the information about the cluster in a dictionary format, like topic name, broker id, name, partitions etc.
-        if topic_name not in metadata.topic:    # metadata.topic list all the topic name in the cluster
+        if topic_name not in metadata.topics:    # metadata.topic list all the topic name in the cluster
             topic = NewTopic(                   # Here topic is basically a topic config object which will later be used to create an actual topic
                 topic=topic_name,
                 num_partitions=NUM_PARTITIONS,
@@ -64,7 +64,7 @@ def create_topic(topic_name):
         else:
             logger.info(f"Topic '{topic_name}' already exists.")
 
-    except Exception as e;
+    except Exception as e:
         logger.error(f"Erro creating topic: {e}")
 
 
@@ -96,15 +96,15 @@ def delivery_report(err,msg):
 
 
 #Adding a loop to generate transaction, sending to topic or printing an error message if message sending fails.
-def produce_transation():
+def produce_transaction(thread_id):
     while True:
         transaction=generate_transaction()
 
         try:
             producer.produce(
                 topic=TOPIC_NAME,
-                key=transaction['userId'],
-                value=json.dump(transaction).encode('utf-8'), #transaction dictionary is being turned into a json and then encoded before sending over the wire.
+                key=transaction['userid'],
+                value=json.dumps(transaction).encode('utf-8'), #transaction dictionary is being turned into a json and then encoded before sending over the wire.
                 on_delivery=delivery_report #Here delivery_report function is being passed to a variable. Once the message delivered/failed, this functioned will be called.
             )
             print(f'Thread {thread_id} - Produced Transaction:{transaction}')

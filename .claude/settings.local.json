@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pip install *)",
+      "PowerShell(pip install confluent-kafka)",
+      "PowerShell(python --version)",
+      "PowerShell(python -m pip install confluent-kafka)"
+    ]
+  }
+}
