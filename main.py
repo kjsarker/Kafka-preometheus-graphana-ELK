@@ -16,6 +16,7 @@ KAFKA_BROKERS = "localhost:29092,localhost:39092,localhost:49092"
 NUM_PARTITIONS = 5
 REPLICATION_FACTOR = 3
 TOPIC_NAME = "financial_transactions"
+AGGREGATES_TOPIC = "transaction_aggregates"
 
 
 ## We are using logging to log the information and errors. We are setting the logging level to INFO, so that we can see the info messages in the console.
@@ -133,5 +134,6 @@ def producer_data_in_parallel(num_threads):
 # Adding a Python guard that says, only run this code if this file is being run directly, not if it's being imported by another file.
 if __name__ == "__main__":
     create_topic(TOPIC_NAME)
+    create_topic(AGGREGATES_TOPIC)
     producer_data_in_parallel(3)
 

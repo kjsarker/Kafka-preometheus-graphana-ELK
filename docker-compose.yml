@@ -184,7 +184,8 @@ services:
 
   spark-master:
     <<: *spark-common
-    command: bin/spark-class org.apache.spark.deploy.master.Master
+    entrypoint: ["/opt/spark/bin/spark-class"]
+    command: ["org.apache.spark.deploy.master.Master"]
     ports:
       - "9190:8080"
       - "7077:7077"
@@ -192,14 +193,13 @@ services:
       - "8081:8081"
   spark-worker: &spark-worker-image
     <<: *spark-common
-    command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+    entrypoint: ["/opt/spark/bin/spark-class"]
+    command: ["org.apache.spark.deploy.worker.Worker", "spark://spark-master:7077"]
     depends_on:
       - spark-master
     environment:
-      SPARK_MODE: worker
       SPARK_WORKER_CORES: 2
       SPARK_WORKER_MEMORY: 2g
-      SPARK_MASTER_URL: spark://spark-master:7077
 
   spark-worker-2:
     <<: *spark-worker-image
